@@ -1,0 +1,19 @@
+{{#each flights}}  
+<div class="flight-card {{#if bestPrice}}highlight{{/if}}">  
+  <h3>{{airline}} {{flightNumber}}</h3>  
+  <div class="flight-meta">  
+    <span class="departure">  
+      {{formatDate departureTime "DD MMM YYYY HH:mm"}}  
+    </span>  
+    <span class="duration">{{duration}}h</span>  
+    <span class="price {{priceTrend}}">  
+      {{formatCurrency price currency}}  
+    </span>  
+  </div>  
+  {{#if layovers}}  
+  <div class="layover-warning">  
+    {{layovers.length}} connection(s)  
+  </div>  
+  {{/if}}  
+</div>  
+{{/each}}  
