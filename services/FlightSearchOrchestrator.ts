@@ -12,15 +12,18 @@ export async function executeFlightSearch() {
     // Add other necessary fields
   };
 
-  const [aiResults, apiResults] = await Promise.all([
+  //   const [aiResults, apiResults] = await Promise.all([
+  const [aiResults] = await Promise.all([
     fetchFlightInsights(),
-    searchFlights(flightSearchParams), // Pass the required argument
+    // searchFlights(flightSearchParams), // Pass the required argument
   ]);
 
-  const mergedResults = mergeResults(aiResults, apiResults);
-  const pdfBuffer = await generateReport(mergedResults);
-  const buffer = Buffer.from(pdfBuffer);
-  await sendReport(buffer);
+  console.log("Flight insights:", aiResults);
+
+  //   const mergedResults = mergeResults(aiResults, apiResults);
+  //   const pdfBuffer = await generateReport(mergedResults);
+  //   const buffer = Buffer.from(pdfBuffer);
+  //   await sendReport(buffer);
 }
 
 function mergeResults(aiData: any, apiData: any) {

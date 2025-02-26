@@ -1,5 +1,4 @@
 import dotenv from "dotenv";
-import { RedisOptions } from "ioredis";
 
 dotenv.config();
 
@@ -9,9 +8,10 @@ interface Config {
     perplexity: string;
     serpapi: string;
   };
-  redis: RedisOptions & {
-    enableCache: boolean;
-    cacheTtl: number;
+  airtable: {
+    apiKey: string;
+    baseId: string;
+    healthCheckTable: string;
   };
   email: {
     gmailUser: string;
@@ -42,8 +42,6 @@ const validateConfig = (config: Partial<Config>): config is Config => {
 };
 
 const getConfig = (): Config => {
-  const defaultRedisPort = parseInt(process.env.REDIS_PORT || "6379", 10);
-
   const config: Partial<Config> = {
     env: (process.env.NODE_ENV as Config["env"]) || "development",
 
@@ -52,16 +50,10 @@ const getConfig = (): Config => {
       serpapi: process.env.SERPAPI_KEY!,
     },
 
-    redis: {
-      host: process.env.REDIS_HOST || "localhost",
-      port: defaultRedisPort,
-      password: process.env.REDIS_PASSWORD,
-      enableCache: process.env.REDIS_CACHE_ENABLED === "true",
-      cacheTtl: parseInt(process.env.REDIS_CACHE_TTL || "3600", 10),
-      reconnectOnError: (err: Error) => {
-        console.error("Redis connection error:", err.message);
-        return true;
-      },
+    airtable: {
+      apiKey: process.env.AIRTABLE_API_KEY!,
+      baseId: process.env.AIRTABLE_BASE_ID!,
+      healthCheckTable: process.env.AIRTABLE_HEALTH_CHECK_TABLE!,
     },
 
     email: {
@@ -73,7 +65,7 @@ const getConfig = (): Config => {
     },
 
     scheduling: {
-      cronPattern: process.env.CRON_SCHEDULE || "0 8 * * *", // 8 AM daily
+      cronPattern: process.env.CRON_SCHEDULE || "0 8 * * *", //? 8 AM daily
       timezone: process.env.TZ || "Europe/Paris",
     },
 
@@ -83,12 +75,6 @@ const getConfig = (): Config => {
       timezone: process.env.REPORT_TIMEZONE || "UTC",
     },
   };
-
-  if (config.env === "production") {
-    if (!process.env.REDIS_PASSWORD) {
-      console.warn("Redis password is recommended in production environment");
-    }
-  }
 
   if (validateConfig(config)) {
     return config as Config;

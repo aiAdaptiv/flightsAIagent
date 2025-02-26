@@ -1,5 +1,6 @@
 import axios, { AxiosInstance } from "axios";
 import getConfig from "next/config";
+import config from "../config/config";
 
 export interface SerpApiParams {
   engine: "google_flights" | "google_flights_dates";
@@ -12,7 +13,6 @@ export interface SerpApiParams {
 }
 
 export function createSerpApiClient() {
-  const config = getConfig();
   const baseURL = "https://serpapi.com/search";
   const client = axios.create({
     timeout: 10000,
@@ -36,7 +36,6 @@ export function createSerpApiClient() {
 
       return response.data;
     } catch (error: any) {
-      // Specify the type of error as 'any'
       throw new SerpApiError(
         error.response?.data?.error || error.message || "Unknown SerpAPI error"
       );

@@ -28,8 +28,8 @@ app.get("/", async (req: Request, res: Response) => {
 });
 
 if (process.env.NODE_ENV !== "test") {
-  initializeScheduler();
-  app.listen(3000, () => {
-    console.log("Server running on port 3000");
+  //   initializeScheduler();
+  app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
   });
 }

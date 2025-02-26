@@ -1,25 +1,53 @@
 import { pplxClient } from "../infrastructure/pplx";
-import { createRedisClient } from "../infrastructure/redis";
-import { createSerpApiClient } from "../infrastructure/serpapi";
+import { airtableClient } from "../infrastructure/airtable";
+import dates from "../placeholders/dates.json";
+import fs from "fs";
+import path from "path";
 
 export async function fetchFlightInsights() {
-  const redisClient = createRedisClient();
-  const cacheKey = `perplexity:${getQuerySignature()}`;
-  const cached = await redisClient.get<string>(cacheKey);
+  // Load the rules and prompt from their respective markdown files
+  const rules = fs.readFileSync(
+    path.resolve(__dirname, "../placeholders/rules.md"),
+    "utf-8"
+  );
+  const prompt = fs.readFileSync(
+    path.resolve(__dirname, "../placeholders/prompt.md"),
+    "utf-8"
+  );
 
-  if (cached) return JSON.parse(cached);
+  const messages: { role: "system" | "user" | "assistant"; content: string }[] =
+    [
+      {
+        role: "system",
+        content: `${prompt}\n\n${rules}\n\nDates: ${JSON.stringify(dates)}`,
+      },
+      {
+        role: "user",
+        content: "What are the best flights to New York from my dates range?",
+      },
+    ];
+  console.log(messages);
 
   const response = await pplxClient.chatCompletion({
-    model: "mistral-7b-instruct",
-    messages: [
-      /* ... */
-    ],
+    model: "sonar-reasoning-pro",
+    messages: messages,
   });
 
-  await redisClient.set(cacheKey, JSON.stringify(response), { EX: 3600 });
   return response;
 }
 
 function getQuerySignature() {
-  // Implement the logic to generate a query signature
+  // Example parameters that might affect the query
+  const userId = "exampleUserId"; // Replace with actual user ID
+  const queryParameters = {
+    destination: "New York",
+    departureDate: "2023-12-25",
+    returnDate: "2024-01-05",
+  };
+
+  // Create a unique signature based on the parameters
+  const signature = `${userId}:${queryParameters.destination}:${queryParameters.departureDate}:${queryParameters.returnDate}`;
+
+  // Optionally, hash the signature for a shorter key
+  return signature;
 }

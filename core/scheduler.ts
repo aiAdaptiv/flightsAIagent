@@ -1,16 +1,22 @@
 import cron from "node-cron";
 import { executeFlightSearch } from "../services/FlightSearchOrchestrator";
-import { createRedisClient } from "../infrastructure/redis";
+import { airtableClient } from "../infrastructure/airtable";
 
 export const initializeScheduler = () => {
   cron.schedule("0 8 * * *", async () => {
-    const redisClient = createRedisClient();
-    const lock = await redisClient.set("scheduler_lock", "active", {
-      EX: 3600,
-      NX: true,
+    const lockRecordId = "scheduler_lock"; // Use a specific record ID for the lock
+    const lock = await airtableClient.set("Locks", {
+      id: lockRecordId,
+      status: "active",
     });
+
     if (lock) {
-      await executeFlightSearch();
+      try {
+        await executeFlightSearch();
+      } finally {
+        // Optionally, remove the lock after execution
+        await airtableClient.del("Locks", lockRecordId);
+      }
     }
   });
 };
